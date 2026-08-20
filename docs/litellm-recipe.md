@@ -53,7 +53,7 @@ export ANTHROPIC_AUTH_TOKEN=<litellm master key, if set>
 claude
 ```
 
-Frugal's routing is unchanged: `scout` still asks for the haiku tier; LiteLLM decides what actually serves it. Cost reporting in `scripts/stats.py` prices by model-name substring, so if you remap a tier to another provider, add a matching `PRICES` entry with that provider's rates.
+Frugal's routing is unchanged: `scout` still asks for its configured tier (`sonnet` in this fork); LiteLLM decides what actually serves it. Cost reporting in `scripts/stats.py` prices by model-name substring, so if you remap a tier to another provider, add a matching `PRICES` entry with that provider's rates.
 
 ## Local models
 

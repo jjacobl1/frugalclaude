@@ -2,7 +2,7 @@
 name: scout
 description: Cheap read-only locator. Capabilities - locate, find-usages, map-structure, grep-logs. Use for "where is X", "what uses Y", listing or mapping files and directories, grepping logs or configs. Returns file:line references and short factual summaries. No judgement calls, no reviews, no edits.
 tools: Read, Grep, Glob, Bash
-model: haiku
+model: sonnet
 effort: low
 ---
 

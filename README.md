@@ -7,7 +7,7 @@
 A cost-optimised agent router for [Claude Code](https://code.claude.com). Frugal teaches the main loop to send every sub-task to the cheapest execution strategy that can succeed, and to escalate only on verified failure:
 
 ```
-deterministic tool → haiku worker → sonnet worker → main model → fable (escalation ceiling)
+deterministic tool → sonnet worker → opus worker → main model → fable (escalation ceiling)
 ```
 
 The expensive reasoning model plans and judges; commodity work (locating files, extracting data, mechanical edits) runs on cheap tiers. No framework, no runtime, no API keys: frugal is a plugin made of a routing skill, five agent definitions, and two small hooks. The harness does the rest.
@@ -25,12 +25,14 @@ The main model already reads every request, so it acts as the router at zero mar
 
 | Task | Agent | Model |
 |---|---|---|
-| locate, grep, map structure, find usages | `scout` | Haiku |
-| extract, classify, summarise one source | `extractor` | Haiku |
-| mechanical edits from a complete spec | `mechanic` | Sonnet |
-| implement one scoped task from an approved plan | `builder` | Sonnet |
+| locate, grep, map structure, find usages | `scout` | Sonnet |
+| extract, classify, summarise one source | `extractor` | Sonnet |
+| mechanical edits from a complete spec | `mechanic` | Opus |
+| implement one scoped task from an approved plan | `builder` | Opus |
 | design, debugging, ambiguity, risk | main loop | whatever you run |
 | beyond the main loop's tier, or isolated deep reviews | `sage` | Fable |
+
+This fork runs one tier above upstream's defaults (upstream: Haiku scouts, Sonnet builders). That trades saving for first-pass reliability — see [Tier choice](#tier-choice).
 
 Plus a tool-first rule: if grep, jq, git, terraform or any deterministic command solves the task, no model is called at all.
 
@@ -88,6 +90,36 @@ Judgement lives in prompts; enforcement lives in hooks.
 
 Too aggressive for your taste? `FRUGAL_ALLOW_INLINE=1` in your environment turns the hard guard off while keeping the advisory policy. Want it gone entirely? `/plugin uninstall frugal` — frugal keeps no state outside the metrics file.
 
+## Tier choice
+
+Upstream routes for maximum saving: Haiku for `scout`/`extractor`, Sonnet for `mechanic`/`builder`.
+This fork runs each worker one tier higher.
+
+| Agent | Upstream | This fork |
+|---|---|---|
+| `scout` | Haiku | Sonnet |
+| `extractor` | Haiku | Sonnet |
+| `mechanic` | Sonnet | Opus |
+| `builder` | Sonnet | Opus |
+| `sage` | Fable | Fable |
+
+What this buys and what it costs, at the list input rates in `scripts/stats.py`
+(Haiku $1, Sonnet $3, Opus $5, Fable $10 per MTok):
+
+- **Fewer escalations.** A Sonnet scout is far less likely to misread a codebase than a
+  Haiku one, and an Opus `mechanic` rarely needs a retry. Every avoided escalation saves a
+  wasted worker run plus the main loop's time judging it.
+- **Less saving per delegation.** Against a Fable main loop, delegated reading now costs
+  50-70% less than doing it inline, where upstream's mapping saved 70-90%.
+- **`mechanic`/`builder` no longer undercut an Opus main loop.** If your main loop already
+  runs Opus, delegating to them saves nothing on rate. They still pay for themselves through
+  context isolation (the main loop never ingests the raw files) and pinned low/medium effort,
+  but the per-token discount is gone. On a Fable main loop the discount is real.
+
+Reverting to upstream's mapping is `/frugal:models scout=haiku extractor=haiku mechanic=sonnet builder=sonnet`,
+or edit the `model:` line in each `agents/*.md`. Either way, run `/frugal:router-stats` after a
+few days of real work and let your own escalation rate settle the argument.
+
 ## Configuration
 
 - Defaults are the decision table in `skills/routing/SKILL.md`.
@@ -127,12 +159,13 @@ Metrics are agent names, model ids, token counts and an escalation flag — one 
 
 Rollout is two commands per person (see Install) and no workflow change; routing is automatic. Work normally for a week, then review `/frugal:router-stats` together and tune the decision table or `FRUGAL_INLINE_BUDGET` if the guard fires too often or too rarely.
 
-Be precise about the cost claim when you pitch it internally: in our measurements delegated work costs **~85% less** than the same work on the top-tier model — cents instead of dollars per task. That saving applies to the *delegated* portion of a session, not the whole bill. Design, debugging and review stay on the expensive model on purpose; what frugal removes is paying reasoning rates for grep. Every install measures itself locally, so nobody has to take this README's word for anything.
+Be precise about the cost claim when you pitch it internally. Upstream measured delegated work at **~85% less** than the same work on the top-tier model, on its Haiku/Sonnet mapping. This fork runs a tier higher, so expect roughly **50-70% less** instead (see [Tier choice](#tier-choice)) in exchange for fewer escalations — cents instead of dollars per task, but more cents. That saving applies to the *delegated* portion of a session, not the whole bill. Design, debugging and review stay on the expensive model on purpose; what frugal removes is paying reasoning rates for grep. Every install measures itself locally, so nobody has to take this README's word for anything.
 
 ## Honest trade-offs
 
 - **Advisory unless the guard hook is enabled.** The skill steers routing; only the hook enforces it.
 - **Claude Code only.** The router leans on the harness (Agent tool, hooks, parallel delegation). Multi-provider is a documented recipe, not a tested code path.
+- **Workers are not cheap models here.** This fork's `mechanic` and `builder` run on Opus, so on an Opus main loop they save nothing per token; the win is context isolation and pinned effort, not rate. See [Tier choice](#tier-choice).
 - **Metrics are limited** to fields hook events and transcripts expose. Escalations are detected via a prompt marker, so escalations performed without the marker are not counted.
 
 ## Extending
