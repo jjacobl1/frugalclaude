@@ -3,6 +3,14 @@
 <!-- Entries below v0.14.0 are upstream history from ThomasLangbroek/frugal;
      their commit and issue links point at the upstream repository. -->
 
+## [0.15.0](https://github.com/jjacobl1/frugalclaude/compare/v0.14.0...v0.15.0) (2026-08-20)
+
+
+### Features
+
+* import frugal router plugin and rebrand for this fork ([93fef22](https://github.com/jjacobl1/frugalclaude/commit/93fef22ae15fda6c3539a5264736bd219f7504ec))
+* run every worker one tier above upstream defaults ([fbbb6d5](https://github.com/jjacobl1/frugalclaude/commit/fbbb6d5668b417a442a7f614e1f1b2a99a2fb540))
+
 ## [0.14.0](https://github.com/ThomasLangbroek/frugal/compare/v0.13.3...v0.14.0) (2026-07-27)
 
 
