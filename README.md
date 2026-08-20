@@ -109,8 +109,19 @@ What this buys and what it costs, at the list input rates in `scripts/stats.py`
 - **Fewer escalations.** A Sonnet scout is far less likely to misread a codebase than a
   Haiku one, and an Opus `mechanic` rarely needs a retry. Every avoided escalation saves a
   wasted worker run plus the main loop's time judging it.
-- **Less saving per delegation.** Against a Fable main loop, delegated reading now costs
-  50-70% less than doing it inline, where upstream's mapping saved 70-90%.
+- **Less saving per delegation.** Measured with `scripts/stats.py` against a Fable main
+  loop, saving depends on the worker's tier and how read-heavy the task is (a delegation
+  that reads a lot and replies briefly saves most, because the reply is re-ingested by the
+  main loop at main-loop rates):
+
+  | Worker tier | Output-heavy (5:1) | Balanced (20:1) | Read-heavy (50:1) |
+  |---|---|---|---|
+  | Sonnet (`scout`, `extractor`) | 60% | 66% | 68% |
+  | Opus (`mechanic`, `builder`) | 40% | 46% | 48% |
+
+  So roughly **40-68%**, where upstream's cheaper mapping saved 70-90%. Note these are
+  below the raw rate ratios (Sonnet-vs-Fable is 70%) precisely because of that
+  re-ingestion cost — it never disappears, and it is what makes the delegation floor real.
 - **`mechanic`/`builder` no longer undercut an Opus main loop.** If your main loop already
   runs Opus, delegating to them saves nothing on rate. They still pay for themselves through
   context isolation (the main loop never ingests the raw files) and pinned low/medium effort,
@@ -159,7 +170,7 @@ Metrics are agent names, model ids, token counts and an escalation flag — one 
 
 Rollout is two commands per person (see Install) and no workflow change; routing is automatic. Work normally for a week, then review `/frugal:router-stats` together and tune the decision table or `FRUGAL_INLINE_BUDGET` if the guard fires too often or too rarely.
 
-Be precise about the cost claim when you pitch it internally. Upstream measured delegated work at **~85% less** than the same work on the top-tier model, on its Haiku/Sonnet mapping. This fork runs a tier higher, so expect roughly **50-70% less** instead (see [Tier choice](#tier-choice)) in exchange for fewer escalations — cents instead of dollars per task, but more cents. That saving applies to the *delegated* portion of a session, not the whole bill. Design, debugging and review stay on the expensive model on purpose; what frugal removes is paying reasoning rates for grep. Every install measures itself locally, so nobody has to take this README's word for anything.
+Be precise about the cost claim when you pitch it internally. Upstream measured delegated work at **~85% less** than the same work on the top-tier model, on its Haiku/Sonnet mapping. This fork runs a tier higher, so expect roughly **40-68% less** instead — measured, not estimated (see [Tier choice](#tier-choice)) — in exchange for fewer escalations — cents instead of dollars per task, but more cents. That saving applies to the *delegated* portion of a session, not the whole bill. Design, debugging and review stay on the expensive model on purpose; what frugal removes is paying reasoning rates for grep. Every install measures itself locally, so nobody has to take this README's word for anything.
 
 ## Honest trade-offs
 
