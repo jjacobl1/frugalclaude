@@ -1,0 +1,11 @@
+{
+  "name": "frugal-marketplace",
+  "owner": { "name": "jjacobl1" },
+  "plugins": [
+    {
+      "name": "frugal",
+      "source": "./",
+      "description": "Cost-optimised agent router for Claude Code."
+    }
+  ]
+}

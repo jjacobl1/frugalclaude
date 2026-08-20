@@ -1,0 +1,18 @@
+{
+  "name": "frugal",
+  "displayName": "Frugal",
+  "version": "0.14.0",
+  "description": "Cost-optimised agent router: sends every sub-task to the cheapest execution strategy that can succeed, escalates only on verified failure.",
+  "author": {
+    "name": "jjacobl1"
+  },
+  "repository": "https://github.com/jjacobl1/frugalclaude",
+  "license": "MIT",
+  "keywords": [
+    "routing",
+    "cost",
+    "agents",
+    "orchestration",
+    "claude-code"
+  ]
+}

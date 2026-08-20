@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Frugal routes each Claude Code sub-task to the cheapest capable model and escalates only on verified failure.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231c1a17'/%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='%23c0741a' stroke-width='3'/%3E%3Crect x='20' y='12.5' width='9' height='7' fill='%231c1a17'/%3E%3Crect x='14.8' y='4.5' width='2.6' height='23' rx='1.3' fill='%23c0741a'/%3E%3C/svg%3E">
+<title>Frugal — a cost-optimised model router for Claude Code</title>
+<style>
+  :root {
+    --bg: #eceded;
+    --surface: #f6f7f6;
+    --raise: #e3e5e4;
+    --ink: #16181a;
+    --muted: #5d6266;
+    --faint: #8a8f8f;
+    --line: #d3d7d5;
+    --accent: #a9640f;
+    --accent-ink: #7c4a0c;
+    --good: #4a7538;
+    --slate: #515c64;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --maxw: 1000px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #131517; --surface: #1a1c1e; --raise: #212426;
+      --ink: #e8eae9; --muted: #969b9a; --faint: #6d7273; --line: #2a2e30;
+      --accent: #dd9f47; --accent-ink: #ecc07e; --good: #83bb6a; --slate: #7e8a92;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #eceded; --surface: #f6f7f6; --raise: #e3e5e4;
+    --ink: #16181a; --muted: #5d6266; --faint: #8a8f8f; --line: #d3d7d5;
+    --accent: #a9640f; --accent-ink: #7c4a0c; --good: #4a7538; --slate: #515c64;
+  }
+  :root[data-theme="dark"] {
+    --bg: #131517; --surface: #1a1c1e; --raise: #212426;
+    --ink: #e8eae9; --muted: #969b9a; --faint: #6d7273; --line: #2a2e30;
+    --accent: #dd9f47; --accent-ink: #ecc07e; --good: #83bb6a; --slate: #7e8a92;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
+  a { color: var(--ink); text-decoration-color: var(--line); text-underline-offset: 3px; }
+  a:hover { text-decoration-color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  h1, h2, h3 { font-family: var(--mono); font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--faint); margin: 0 0 14px;
+  }
+  .rule { border: 0; border-top: 1px solid var(--line); margin: 0; }
+
+  /* top bar */
+  header.top { border-bottom: 1px solid var(--line); }
+  header.top .wrap { display: flex; align-items: baseline; justify-content: space-between; padding: 22px 28px 16px; }
+  .word { font-family: var(--mono); font-weight: 600; font-size: 16px; letter-spacing: 0.02em; }
+  .word b { color: var(--accent); font-weight: 600; }
+  header.top nav { display: flex; gap: 26px; font-family: var(--mono); font-size: 13.5px; }
+  header.top nav a { color: var(--muted); text-decoration: none; }
+  header.top nav a:hover { color: var(--ink); }
+  @media (max-width: 640px) { header.top nav a.h { display: none; } }
+
+  /* hero */
+  .hero { padding: 0; }
+  .hero .wrap { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 56px; align-items: start; padding: 44px 28px 56px; }
+  @media (max-width: 840px) { .hero .wrap { grid-template-columns: 1fr; gap: 40px; padding: 52px 28px 48px; } }
+  h1 { font-size: clamp(32px, 5vw, 52px); line-height: 1.06; margin: 0; }
+  h1 .a { color: var(--accent); }
+  .lede { color: var(--muted); font-size: 18px; margin: 24px 0 0; max-width: 42ch; }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+  .btn {
+    font-family: var(--mono); font-size: 13.5px; text-decoration: none;
+    padding: 10px 17px; border-radius: 3px; border: 1px solid transparent;
+  }
+  .btn.solid { background: var(--ink); color: var(--bg); }
+  .btn.solid:hover { opacity: 0.88; }
+  .btn.wire { border-color: var(--line); color: var(--ink); }
+  .btn.wire:hover { border-color: var(--accent); }
+
+  /* ledger card */
+  .ledger { border: 1px solid var(--line); background: var(--surface); border-radius: 3px; padding: 20px 20px 16px; font-family: var(--mono); }
+  .ledger .h { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); margin-bottom: 12px; }
+  .ledger .dash { border: 0; border-top: 1px dashed var(--line); margin: 12px 0; }
+  .lr { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; font-variant-numeric: tabular-nums; }
+  .lr .k { color: var(--muted); }
+  .lr.old .v { color: var(--slate); text-decoration: line-through; }
+  .lr.new .v { color: var(--accent-ink); }
+  .lt { display: flex; justify-content: space-between; align-items: baseline; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .lt .v { color: var(--accent); font-size: 17px; font-weight: 700; }
+  .note { font-family: var(--sans); font-size: 11.5px; color: var(--faint); line-height: 1.5; margin: 12px 0 0; }
+
+  /* sections */
+  section { padding: 50px 0; }
+  .head { max-width: 62ch; margin-bottom: 34px; }
+  .head h2 { font-size: clamp(21px, 2.6vw, 27px); margin: 0; }
+  .head p { color: var(--muted); margin: 12px 0 0; }
+
+  /* ladder as a ledger table */
+  .tiers { display: flex; flex-direction: column; }
+  .tier { display: grid; grid-template-columns: 190px 1fr 150px; gap: 24px; align-items: center; padding: 16px 0; border-top: 1px solid var(--line); }
+  .tier:last-child { border-bottom: 1px solid var(--line); }
+  @media (max-width: 720px) { .tier { grid-template-columns: 1fr; gap: 6px; } .tier .bar-c { max-width: 200px; } }
+  .tier .n { font-family: var(--mono); font-weight: 600; font-size: 14.5px; display: flex; flex-direction: column; gap: 3px; }
+  .tier .m { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.03em; color: var(--tc, var(--faint)); }
+  .tier .d { color: var(--muted); font-size: 14px; }
+  .tier .bar-c { display: flex; align-items: center; gap: 10px; }
+  .bar { flex: 1; height: 4px; background: var(--raise); border-radius: 2px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: var(--w); background: var(--tc, var(--accent)); }
+  .tier .cost { font-family: var(--mono); font-size: 11px; color: var(--faint); width: 34px; text-align: right; }
+  .tier.hd { padding: 12px 0; }
+  .tier.hd span { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--faint); }
+  @media (max-width: 720px) { .tier.hd { display: none; } }
+  .verif { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-top: 20px; }
+  .verif b { color: var(--accent-ink); font-weight: 600; }
+
+  /* makeup: one line, not stat cards */
+  .makeup { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: 3px; }
+  @media (max-width: 640px) { .makeup { grid-template-columns: 1fr; } .makeup .cell + .cell { border-left: 0; border-top: 1px solid var(--line); } }
+  .cell { padding: 22px; }
+  .cell + .cell { border-left: 1px solid var(--line); }
+  .cell .q { font-family: var(--mono); font-size: 14px; color: var(--accent); }
+  .cell h3 { font-size: 15px; margin: 8px 0 5px; font-weight: 600; }
+  .cell p { color: var(--muted); font-size: 13.5px; margin: 0; }
+  .spec { font-family: var(--mono); font-size: 12.5px; color: var(--faint); margin-top: 18px; }
+  .spec b { color: var(--muted); font-weight: 600; }
+
+  /* two panels */
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--line); border-radius: 3px; }
+  @media (max-width: 720px) { .two { grid-template-columns: 1fr; } .two .p + .p { border-left: 0; border-top: 1px solid var(--line); } }
+  .p { padding: 24px; }
+  .p + .p { border-left: 1px solid var(--line); }
+  .p .tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-ink); }
+  .p h3 { font-size: 15.5px; margin: 9px 0 7px; }
+  .p p { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+  .fo { font-family: var(--mono); font-size: 11.5px; color: var(--good); }
+
+  /* code */
+  .code { border: 1px solid var(--line); background: var(--surface); border-radius: 3px; overflow-x: auto; }
+  .code .cap { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); padding: 11px 16px; border-bottom: 1px solid var(--line); }
+  .code pre { margin: 0; padding: 16px; font-family: var(--mono); font-size: 13px; line-height: 1.85; color: var(--ink); white-space: pre; }
+  .code .pr { color: var(--accent); }
+  .code .cm { color: var(--faint); }
+  .measure { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 760px) { .measure { grid-template-columns: 1fr; } }
+  .measure p { color: var(--muted); font-size: 14.5px; margin: 0 0 12px; }
+  .measure .lead { color: var(--ink); }
+
+  /* install */
+  .install .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: center; }
+  @media (max-width: 780px) { .install .wrap { grid-template-columns: 1fr; gap: 26px; } }
+  .install h2 { font-size: clamp(21px, 2.6vw, 27px); margin: 0 0 12px; }
+  .install .lede { margin: 0 0 22px; }
+
+  /* tradeoffs */
+  .honest { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+  @media (max-width: 720px) { .honest { grid-template-columns: 1fr; gap: 18px; } }
+  .honest h4 { font-family: var(--mono); font-size: 13.5px; margin: 0 0 6px; font-weight: 600; }
+  .honest p { color: var(--muted); font-size: 13.5px; margin: 0; }
+
+  footer { border-top: 1px solid var(--line); padding: 30px 0 50px; }
+  footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-family: var(--mono); font-size: 12.5px; color: var(--faint); }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <span class="word"><b>¢</b> frugal</span>
+    <nav>
+      <a class="h" href="#ladder">ladder</a>
+      <a class="h" href="#make">what it is</a>
+      <a class="h" href="#measure">measurement</a>
+      <a href="https://github.com/jjacobl1/frugalclaude">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Claude Code plugin · MIT · no runtime</p>
+      <h1>Stop paying <span class="a">reasoning rates</span> for grep.</h1>
+      <p class="lede">Frugal turns Claude Code's main model into a router. Every sub-task goes to the cheapest tier that can do it, and it escalates only when a real check fails.</p>
+      <div class="actions">
+        <a class="btn solid" href="https://github.com/jjacobl1/frugalclaude">View on GitHub</a>
+        <a class="btn wire" href="#install">Install</a>
+      </div>
+    </div>
+    <div class="ledger" aria-label="Illustrative session cost breakdown">
+      <div class="h"><span>session ledger</span><span>frugal</span></div>
+      <div class="lr"><span class="k">locate files</span><span class="v">scout · haiku</span></div>
+      <div class="lr"><span class="k">read + summarise</span><span class="v">extractor · haiku</span></div>
+      <div class="lr"><span class="k">mechanical edits</span><span class="v">mechanic · sonnet</span></div>
+      <div class="lr"><span class="k">design + review</span><span class="v">main loop</span></div>
+      <hr class="dash">
+      <div class="lr old"><span class="k">all on top tier</span><span class="v">$1.00</span></div>
+      <div class="lr new"><span class="k">delegated, routed</span><span class="v">$0.15</span></div>
+      <div class="lt"><span class="k">saved on delegated work</span><span class="v">~85%</span></div>
+      <p class="note">Illustrative. Applies to the delegated portion of a session, not the whole bill. Every install measures its own numbers locally.</p>
+    </div>
+  </div>
+</section>
+
+<section id="ladder">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">the routing ladder</p>
+      <h2>Cheapest capable tier first. Expensive only when earned.</h2>
+      <p>One decision table the main model reads on every sub-task. A deterministic shell command beats any model; a model is called only when reasoning is actually required.</p>
+    </div>
+    <div class="tiers">
+      <div class="tier hd">
+        <span>tier</span>
+        <span>what it handles</span>
+        <span>cost per task</span>
+      </div>
+      <div class="tier" style="--tc:var(--good)">
+        <div class="n">shell command <span class="m">no model</span></div>
+        <div class="d">A grep, jq, git or test command answers it. No model call at all.</div>
+        <div class="bar-c"><span class="bar"><i style="--w:6%"></i></span><span class="cost">~$0</span></div>
+      </div>
+      <div class="tier" style="--tc:var(--accent)">
+        <div class="n">scout · extractor <span class="m">haiku</span></div>
+        <div class="d">Locate, map, find usages. Pull fields, classify, summarise one source.</div>
+        <div class="bar-c"><span class="bar"><i style="--w:16%"></i></span><span class="cost">low</span></div>
+      </div>
+      <div class="tier" style="--tc:var(--accent)">
+        <div class="n">mechanic · builder <span class="m">sonnet</span></div>
+        <div class="d">Mechanical edits from a spec. Implement one scoped task from a plan.</div>
+        <div class="bar-c"><span class="bar"><i style="--w:34%"></i></span><span class="cost">mid</span></div>
+      </div>
+      <div class="tier" style="--tc:var(--slate)">
+        <div class="n">main loop <span class="m">session model</span></div>
+        <div class="d">Design, debugging, reviews, ambiguity, anything risky. Expensive on purpose.</div>
+        <div class="bar-c"><span class="bar"><i style="--w:72%"></i></span><span class="cost">high</span></div>
+      </div>
+      <div class="tier" style="--tc:var(--slate)">
+        <div class="n">sage <span class="m">fable</span></div>
+        <div class="d">Reached only via high-risk rows or after escalation exhausts. One attempt, final.</div>
+        <div class="bar-c"><span class="bar"><i style="--w:100%"></i></span><span class="cost">max</span></div>
+      </div>
+    </div>
+    <p class="verif"><b>Verification first.</b> A worker climbs a tier only when a real check fails, never on a cheap model's self-reported doubt.</p>
+  </div>
+</section>
+
+<section id="make">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">what it actually is</p>
+      <h2>Not a framework. A plugin.</h2>
+      <p>The main model already reads every request, so it routes at zero marginal cost. Everything else is small.</p>
+    </div>
+    <div class="makeup">
+      <div class="cell"><div class="q">one</div><h3>routing skill</h3><p>A decision table plus the escalation protocol. The whole policy.</p></div>
+      <div class="cell"><div class="q">five</div><h3>agent definitions</h3><p>scout, extractor, mechanic, builder, sage. Each a tier, each a plain markdown file.</p></div>
+      <div class="cell"><div class="q">two</div><h3>fail-open hooks</h3><p>What turns advice into enforcement. A broken hook never breaks a session.</p></div>
+    </div>
+    <p class="spec"><b>Depends on:</b> stdlib Python and bash. No runtime, no API keys, no network calls, no telemetry.</p>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section id="enforce">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">enforcement, not vibes</p>
+      <h2>A prompt can suggest. A hook can prevent.</h2>
+      <p>Routing policy in a skill is advisory. Frugal backs it with two hooks so it does not quietly drift back to expensive habits.</p>
+    </div>
+    <div class="two">
+      <div class="p">
+        <div class="tag">PreToolUse</div>
+        <h3>Inline-exploration budget</h3>
+        <p>Counts search-type calls in the main loop. Past the budget it denies the next one and points at the cheap workers. Resets when you delegate.</p>
+        <span class="fo">fail-open by design</span>
+      </div>
+      <div class="p">
+        <div class="tag">PreToolUse · Agent</div>
+        <h3>Expensive-tier guard</h3>
+        <p>Blocks reasoning-tier agent spawns at the source, so locate and extract work is not handed to a top-tier model by reflex. One env var overrides it per session.</p>
+        <span class="fo">fail-open by design</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section id="measure">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">it measures itself</p>
+      <h2>Numbers from your machine, not this page.</h2>
+      <p>A hook logs one local line per worker run: agent, model, tokens, escalation flag. A report then shows cost per tier, escalation rate, and savings versus your session's own main-loop model.</p>
+    </div>
+    <div class="measure">
+      <div>
+        <p class="lead">Learning is deliberately offline. High escalations on one agent means its row routes too low. Near-zero savings means work is not being delegated. You edit the decision table, not a model.</p>
+        <p>In the author's own measurements the delegated portion of a session runs about 85% cheaper than the same work on the top tier. Reasoning stays on the expensive model by design.</p>
+      </div>
+      <div class="code">
+        <div class="cap">/frugal:router-stats</div>
+<pre><span class="cm"># one jsonl line per worker run</span>
+tier        runs   model    net
+scout        41    haiku    <span class="pr">$0.02</span>
+extractor    23    haiku    <span class="pr">$0.03</span>
+mechanic     11    sonnet   <span class="pr">$0.19</span>
+main loop     7    fable    $2.90
+escalation rate ............ 6%
+saved vs top tier ..... <span class="pr">$3.41</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section class="install" id="install">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">install</p>
+      <h2>Two commands. Then work normally.</h2>
+      <p class="lede">Rollout is per person and needs no workflow change. Routing is automatic. Uninstall keeps no state beyond the local metrics file.</p>
+      <div class="actions">
+        <a class="btn solid" href="https://github.com/jjacobl1/frugalclaude">GitHub</a>
+        <a class="btn wire" href="https://github.com/jjacobl1/frugalclaude/blob/main/README.md">README</a>
+      </div>
+    </div>
+    <div class="code">
+      <div class="cap">claude code</div>
+<pre><span class="cm"># add the marketplace</span>
+<span class="pr">/plugin</span> marketplace add jjacobl1/frugalclaude
+
+<span class="cm"># install the plugin</span>
+<span class="pr">/plugin</span> install frugal@frugal-marketplace</pre>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section id="honest">
+  <div class="wrap">
+    <div class="head">
+      <p class="eyebrow">honest trade-offs</p>
+      <h2>What it does not pretend to be.</h2>
+    </div>
+    <div class="honest">
+      <div><h4>Claude Code only</h4><p>It leans on the harness: the Agent tool, hooks, parallel delegation. Multi-provider is a documented recipe, not a tested code path.</p></div>
+      <div><h4>Advisory without the guard</h4><p>The skill steers routing well, but only the guard hook enforces it. Turn the hook on for a hard ceiling.</p></div>
+      <div><h4>Metrics are bounded</h4><p>Limited to what hook events and transcripts expose. Escalations without the marker are not counted.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>frugal · MIT · built for Claude Code</span>
+    <span><a href="https://github.com/jjacobl1/frugalclaude">github.com/jjacobl1/frugalclaude</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
