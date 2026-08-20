@@ -198,14 +198,14 @@
     </div>
     <div class="ledger" aria-label="Illustrative session cost breakdown">
       <div class="h"><span>session ledger</span><span>frugal</span></div>
-      <div class="lr"><span class="k">locate files</span><span class="v">scout · haiku</span></div>
-      <div class="lr"><span class="k">read + summarise</span><span class="v">extractor · haiku</span></div>
-      <div class="lr"><span class="k">mechanical edits</span><span class="v">mechanic · sonnet</span></div>
+      <div class="lr"><span class="k">locate files</span><span class="v">scout · sonnet</span></div>
+      <div class="lr"><span class="k">read + summarise</span><span class="v">extractor · sonnet</span></div>
+      <div class="lr"><span class="k">mechanical edits</span><span class="v">mechanic · opus</span></div>
       <div class="lr"><span class="k">design + review</span><span class="v">main loop</span></div>
       <hr class="dash">
       <div class="lr old"><span class="k">all on top tier</span><span class="v">$1.00</span></div>
-      <div class="lr new"><span class="k">delegated, routed</span><span class="v">$0.15</span></div>
-      <div class="lt"><span class="k">saved on delegated work</span><span class="v">~85%</span></div>
+      <div class="lr new"><span class="k">delegated, routed</span><span class="v">$0.40</span></div>
+      <div class="lt"><span class="k">saved on delegated work</span><span class="v">~60%</span></div>
       <p class="note">Illustrative. Applies to the delegated portion of a session, not the whole bill. Every install measures its own numbers locally.</p>
     </div>
   </div>
@@ -230,14 +230,14 @@
         <div class="bar-c"><span class="bar"><i style="--w:6%"></i></span><span class="cost">~$0</span></div>
       </div>
       <div class="tier" style="--tc:var(--accent)">
-        <div class="n">scout · extractor <span class="m">haiku</span></div>
+        <div class="n">scout · extractor <span class="m">sonnet</span></div>
         <div class="d">Locate, map, find usages. Pull fields, classify, summarise one source.</div>
-        <div class="bar-c"><span class="bar"><i style="--w:16%"></i></span><span class="cost">low</span></div>
+        <div class="bar-c"><span class="bar"><i style="--w:30%"></i></span><span class="cost">low</span></div>
       </div>
       <div class="tier" style="--tc:var(--accent)">
-        <div class="n">mechanic · builder <span class="m">sonnet</span></div>
+        <div class="n">mechanic · builder <span class="m">opus</span></div>
         <div class="d">Mechanical edits from a spec. Implement one scoped task from a plan.</div>
-        <div class="bar-c"><span class="bar"><i style="--w:34%"></i></span><span class="cost">mid</span></div>
+        <div class="bar-c"><span class="bar"><i style="--w:50%"></i></span><span class="cost">mid</span></div>
       </div>
       <div class="tier" style="--tc:var(--slate)">
         <div class="n">main loop <span class="m">session model</span></div>
@@ -308,18 +308,18 @@
     <div class="measure">
       <div>
         <p class="lead">Learning is deliberately offline. High escalations on one agent means its row routes too low. Near-zero savings means work is not being delegated. You edit the decision table, not a model.</p>
-        <p>In the author's own measurements the delegated portion of a session runs about 85% cheaper than the same work on the top tier. Reasoning stays on the expensive model by design.</p>
+        <p>Upstream measured the delegated portion of a session at about 85% cheaper than the same work on the top tier, on its Haiku/Sonnet mapping. This fork runs a tier higher, trading that for fewer escalations: expect roughly 50-70%. Reasoning stays on the expensive model by design.</p>
       </div>
       <div class="code">
         <div class="cap">/frugal:router-stats</div>
 <pre><span class="cm"># one jsonl line per worker run</span>
 tier        runs   model    net
-scout        41    haiku    <span class="pr">$0.02</span>
-extractor    23    haiku    <span class="pr">$0.03</span>
-mechanic     11    sonnet   <span class="pr">$0.19</span>
+scout        41    sonnet   <span class="pr">$0.06</span>
+extractor    23    sonnet   <span class="pr">$0.09</span>
+mechanic     11    opus     <span class="pr">$0.32</span>
 main loop     7    fable    $2.90
 escalation rate ............ 6%
-saved vs top tier ..... <span class="pr">$3.41</span></pre>
+saved vs top tier ..... <span class="pr">$2.43</span></pre>
       </div>
     </div>
   </div>

@@ -1,6 +1,6 @@
 {
   "name": "frugal-marketplace",
-  "owner": { "name": "jjacobl1" },
+  "owner": { "name": "Thomas Langbroek" },
   "plugins": [
     {
       "name": "frugal",

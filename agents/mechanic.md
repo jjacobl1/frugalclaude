@@ -2,7 +2,7 @@
 name: mechanic
 description: Mechanical code changes from a complete spec. Capabilities - mechanical-edit, rename, boilerplate, pattern-application, config-change, test-scaffold-from-example. The prompt must fully specify what to change and how; this agent makes zero design decisions. Not for debugging, architecture, or ambiguous requirements.
 tools: Read, Edit, Write, Grep, Glob, Bash
-model: sonnet
+model: opus
 effort: low
 ---
 

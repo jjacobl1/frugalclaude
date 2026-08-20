@@ -3,14 +3,14 @@ from pathlib import Path
 
 AGENTS = Path(__file__).resolve().parent.parent / "agents"
 EXPECTED = {
-    "scout": "haiku",
-    "extractor": "haiku",
-    "mechanic": "sonnet",
-    "builder": "sonnet",
+    "scout": "sonnet",
+    "extractor": "sonnet",
+    "mechanic": "opus",
+    "builder": "opus",
     "sage": "fable",
 }
 # model tier is one axis, thinking is another: a session at high effort
-# otherwise makes a haiku scout deliberate over a grep
+# otherwise makes a scout deliberate over a grep
 EXPECTED_EFFORT = {
     "scout": "low",
     "extractor": "low",
