@@ -53,7 +53,8 @@ Security-sensitive changes, destructive operations, ambiguous requirements, anyt
 - Delegate only self-contained sub-tasks the prompt can fully specify. If specifying takes longer than doing: do it inline.
 - Delegation has a floor. A spawn costs about the same whether the task is trivial or large, so a job too small to repay that fixed cost is cheaper done inline. `scripts/stats.py` prints the measured floor per agent ("delegating pays off above ~N tokens of reading") from your own runs; under it, read it yourself.
 - Context handoff: pass pointers (`path:line` ranges, commit SHAs, URLs), never pasted file content. Pasting is billed as main-loop output tokens (fable ~$50/MTok, and generating them takes wall-clock time); a worker reads the same bytes as sonnet input (~$3/MTok) in one round trip. Paste only what the worker cannot retrieve itself — text that exists solely in the conversation (user message, prior tool output, fetched page) — or trivially small snippets (<~200 tokens).
-- Batch independent delegations in one message so they run in parallel. Large fan-outs (e.g. review 50 modules): fan out `scout`/`extractor` workers, merge their summaries, do one final reasoning pass yourself.
+- Batch independent delegations in one message so they run in parallel, and keep working while they run; intervene only if a worker goes off track or is missing context it needs. Large fan-outs (e.g. review 50 modules): fan out `scout`/`extractor` workers, merge their summaries, do one final reasoning pass yourself.
+- Give each worker the reason, not only the request: one line of intent ("this is for X, the output enables Y") ahead of the task. A worker that knows why connects the task to the right details instead of guessing at them.
 - Workers end with a footer (`RESULT:` / `CHECKS-RUN:` / `UNCERTAINTIES:` / `ESCALATE:`). A worker reporting ambiguity: resolve it yourself; never re-prompt the worker to guess.
 
 ## Escalation protocol (verification first)
