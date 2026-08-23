@@ -42,7 +42,7 @@ Decompose the request into sub-tasks. For each, match signals to the cheapest ca
 
 **Generic agents are never routing targets.** `Explore`, `general-purpose`, `claude`, and `Plan` are reasoning-tier and bill at main-loop rates — never spawn them for locate, extract, or summarise work, no matter how broad the fan-out. Map them down: locate/map -> `scout`; extract/summarise/classify -> `extractor`; mechanical edits -> `mechanic`/`builder`; reasoning stays in the main loop. A bare `Agent` call with no `subagent_type` defaults to `general-purpose` (expensive) — always name a cheap agent explicitly. The `guard_expensive.sh` hook blocks these at spawn time; `FRUGAL_ALLOW_EXPENSIVE=1` is the deliberate, per-session override for when a task genuinely needs main-loop breadth.
 
-Workers pin their own reasoning effort in frontmatter: `low` for `scout`, `extractor` and `mechanic`, `medium` for `builder`, `high` for `sage`. Model tier is one axis of cost and thinking is another, so a session running at high effort no longer makes `scout` deliberate over a grep.
+Workers pin their own reasoning effort in frontmatter: `low` for `scout` and `extractor`, `medium` for `mechanic` and `builder` (the Opus workers), `high` for `sage`. Model tier is one axis of cost and thinking is another, so a session running at high effort no longer makes `scout` deliberate over a grep.
 
 ## Never delegate
 
@@ -53,7 +53,9 @@ Security-sensitive changes, destructive operations, ambiguous requirements, anyt
 - Delegate only self-contained sub-tasks the prompt can fully specify. If specifying takes longer than doing: do it inline.
 - Delegation has a floor. A spawn costs about the same whether the task is trivial or large, so a job too small to repay that fixed cost is cheaper done inline. `scripts/stats.py` prints the measured floor per agent ("delegating pays off above ~N tokens of reading") from your own runs; under it, read it yourself.
 - Context handoff: pass pointers (`path:line` ranges, commit SHAs, URLs), never pasted file content. Pasting is billed as main-loop output tokens (fable ~$50/MTok, and generating them takes wall-clock time); a worker reads the same bytes as sonnet input (~$3/MTok) in one round trip. Paste only what the worker cannot retrieve itself — text that exists solely in the conversation (user message, prior tool output, fetched page) — or trivially small snippets (<~200 tokens).
-- Batch independent delegations in one message so they run in parallel. Large fan-outs (e.g. review 50 modules): fan out `scout`/`extractor` workers, merge their summaries, do one final reasoning pass yourself.
+- Batch independent delegations in one message so they run in parallel, and keep working while they run; intervene only if a worker goes off track or is missing context it needs. Large fan-outs (e.g. review 50 modules): fan out `scout`/`extractor` workers, merge their summaries, do one final reasoning pass yourself.
+- Give each worker the reason, not only the request: one line of intent ("this is for X, the output enables Y") ahead of the task. A worker that knows why connects the task to the right details instead of guessing at them.
+- Write for the tier that reads it. Sonnet workers (`scout`, `extractor`) follow instructions literally and do not generalise scope — say "every file" or "all matches", never an example and an ellipsis. Opus workers (`mechanic`, `builder`) verify their own work unprompted — never add "double-check" or "re-verify" instructions; they compound with built-in behaviour and only add cost.
 - Workers end with a footer (`RESULT:` / `CHECKS-RUN:` / `UNCERTAINTIES:` / `ESCALATE:`). A worker reporting ambiguity: resolve it yourself; never re-prompt the worker to guess.
 
 ## Escalation protocol (verification first)
