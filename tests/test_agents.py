@@ -14,7 +14,7 @@ EXPECTED = {
 EXPECTED_EFFORT = {
     "scout": "low",
     "extractor": "low",
-    "mechanic": "low",
+    "mechanic": "medium",
     "builder": "medium",
     "sage": "high",
 }

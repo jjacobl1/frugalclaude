@@ -42,7 +42,7 @@ Decompose the request into sub-tasks. For each, match signals to the cheapest ca
 
 **Generic agents are never routing targets.** `Explore`, `general-purpose`, `claude`, and `Plan` are reasoning-tier and bill at main-loop rates — never spawn them for locate, extract, or summarise work, no matter how broad the fan-out. Map them down: locate/map -> `scout`; extract/summarise/classify -> `extractor`; mechanical edits -> `mechanic`/`builder`; reasoning stays in the main loop. A bare `Agent` call with no `subagent_type` defaults to `general-purpose` (expensive) — always name a cheap agent explicitly. The `guard_expensive.sh` hook blocks these at spawn time; `FRUGAL_ALLOW_EXPENSIVE=1` is the deliberate, per-session override for when a task genuinely needs main-loop breadth.
 
-Workers pin their own reasoning effort in frontmatter: `low` for `scout`, `extractor` and `mechanic`, `medium` for `builder`, `high` for `sage`. Model tier is one axis of cost and thinking is another, so a session running at high effort no longer makes `scout` deliberate over a grep.
+Workers pin their own reasoning effort in frontmatter: `low` for `scout` and `extractor`, `medium` for `mechanic` and `builder` (the Opus workers), `high` for `sage`. Model tier is one axis of cost and thinking is another, so a session running at high effort no longer makes `scout` deliberate over a grep.
 
 ## Never delegate
 

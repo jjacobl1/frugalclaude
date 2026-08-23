@@ -124,7 +124,7 @@ What this buys and what it costs, at the list input rates in `scripts/stats.py`
   re-ingestion cost — it never disappears, and it is what makes the delegation floor real.
 - **`mechanic`/`builder` no longer undercut an Opus main loop.** If your main loop already
   runs Opus, delegating to them saves nothing on rate. They still pay for themselves through
-  context isolation (the main loop never ingests the raw files) and pinned low/medium effort,
+  context isolation (the main loop never ingests the raw files) and pinned medium effort,
   but the per-token discount is gone. On a Fable main loop the discount is real.
 
 Reverting to upstream's mapping is `/frugal:models scout=haiku extractor=haiku mechanic=sonnet builder=sonnet`,
