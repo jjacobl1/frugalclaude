@@ -3,6 +3,18 @@
 <!-- Entries below v0.14.0 are upstream history from ThomasLangbroek/frugal;
      their commit and issue links point at the upstream repository. -->
 
+## [0.15.0](https://github.com/jjacobl1/frugalclaude/compare/v0.14.0...v0.15.0) (2026-08-23)
+
+### Features
+
+* run every worker one tier above upstream defaults (scout/extractor on sonnet, mechanic/builder on opus) ([#5](https://github.com/jjacobl1/frugalclaude/pull/5))
+* run both opus workers at medium effort ([#6](https://github.com/jjacobl1/frugalclaude/pull/6))
+* fold the Claude 5 model-specific prompting guides into sage, scout, extractor and the routing skill ([#6](https://github.com/jjacobl1/frugalclaude/pull/6))
+
+### Documentation
+
+* replace estimated savings claims with measured figures (40-68% vs a Fable main loop) ([#6](https://github.com/jjacobl1/frugalclaude/pull/6))
+
 ## [0.14.0](https://github.com/ThomasLangbroek/frugal/compare/v0.13.3...v0.14.0) (2026-07-27)
 
 
