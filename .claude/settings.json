@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "frugal-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "jjacobl1/frugalclaude"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "frugal@frugal-marketplace": true
+  }
+}
