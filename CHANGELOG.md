@@ -3,6 +3,12 @@
 <!-- Entries below v0.14.0 are upstream history from ThomasLangbroek/frugal;
      their commit and issue links point at the upstream repository. -->
 
+## [0.15.1](https://github.com/jjacobl1/frugalclaude/compare/v0.15.0...v0.15.1) (2026-08-30)
+
+### Bug Fixes
+
+* resolve a working Python interpreter instead of hardcoding `python3` in hooks.json ([#9](https://github.com/jjacobl1/frugalclaude/pull/9))
+
 ## [0.15.0](https://github.com/jjacobl1/frugalclaude/compare/v0.14.0...v0.15.0) (2026-08-23)
 
 ### Features

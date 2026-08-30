@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'FRUGAL ROUTING ACTIVE — apply this policy to every task, every response. No drift:'; awk '/^---$/{c++; next} c>=2' \"${CLAUDE_PLUGIN_ROOT}/skills/routing/SKILL.md\"; python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/stats.py\" --advice 2>/dev/null || true"
+            "command": "echo 'FRUGAL ROUTING ACTIVE — apply this policy to every task, every response. No drift:'; awk '/^---$/{c++; next} c>=2' \"${CLAUDE_PLUGIN_ROOT}/skills/routing/SKILL.md\"; bash \"${CLAUDE_PLUGIN_ROOT}/hooks/_pyrun.sh\" \"${CLAUDE_PLUGIN_ROOT}/scripts/stats.py\" --advice 2>/dev/null || true"
           }
         ]
       }
@@ -19,7 +19,7 @@
           },
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard_budget.py\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/_pyrun.sh\" \"${CLAUDE_PLUGIN_ROOT}/hooks/guard_budget.py\""
           }
         ]
       }
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard_inline.py\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/_pyrun.sh\" \"${CLAUDE_PLUGIN_ROOT}/hooks/guard_inline.py\""
           }
         ]
       },
@@ -48,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard_sensitive.py\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/_pyrun.sh\" \"${CLAUDE_PLUGIN_ROOT}/hooks/guard_sensitive.py\""
           }
         ]
       },
@@ -57,7 +57,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard_budget.py\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/_pyrun.sh\" \"${CLAUDE_PLUGIN_ROOT}/hooks/guard_budget.py\""
           }
         ]
       }
@@ -67,7 +67,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/log_metrics.py\""
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/_pyrun.sh\" \"${CLAUDE_PLUGIN_ROOT}/hooks/log_metrics.py\""
           }
         ]
       }

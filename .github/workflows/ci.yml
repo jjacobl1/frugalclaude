@@ -31,3 +31,4 @@ jobs:
           python3 -m json.tool .claude-plugin/marketplace.json > /dev/null
           python3 -m json.tool hooks/hooks.json > /dev/null
           bash -n hooks/guard_expensive.sh
+          bash -n hooks/_pyrun.sh
