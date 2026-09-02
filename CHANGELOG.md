@@ -3,6 +3,36 @@
 <!-- Entries below v0.14.0 are upstream history from ThomasLangbroek/frugal;
      their commit and issue links point at the upstream repository. -->
 
+## [0.16.0](https://github.com/jjacobl1/frugalclaude/compare/v0.15.1...v0.16.0) (2026-09-02)
+
+
+### Features
+
+* add Fable orchestration guidance to delegation rules ([e47bbb6](https://github.com/jjacobl1/frugalclaude/commit/e47bbb60b45c599f0edc69131a50bc447685fffb))
+* enable the frugal plugin for every session on this repo ([8e54b7f](https://github.com/jjacobl1/frugalclaude/commit/8e54b7f411af5541d63866d7e06eba0dbf44b670))
+* enable the frugal plugin for every session on this repo ([3878b1b](https://github.com/jjacobl1/frugalclaude/commit/3878b1b8437a73d72fe21b08e21099d5018a11d0))
+* enable the frugal plugin for every session on this repo ([#8](https://github.com/jjacobl1/frugalclaude/issues/8)) ([8e54b7f](https://github.com/jjacobl1/frugalclaude/commit/8e54b7f411af5541d63866d7e06eba0dbf44b670))
+* fold Fable 5 prompting guidance into sage ([4ab5a11](https://github.com/jjacobl1/frugalclaude/commit/4ab5a1120670b5cbcb91bdafa0abc4e35d98c206))
+* fold Opus 5 and Sonnet 5 prompting guidance into workers ([16ef73d](https://github.com/jjacobl1/frugalclaude/commit/16ef73d99a6d2c8d662f9ce211b54fbba23d74cf))
+* import frugal router plugin and rebrand for this fork ([93fef22](https://github.com/jjacobl1/frugalclaude/commit/93fef22ae15fda6c3539a5264736bd219f7504ec))
+* medium-effort opus workers and Claude 5 prompting guidance ([8c4dd22](https://github.com/jjacobl1/frugalclaude/commit/8c4dd220a67ce083ce78587e14ed6f6716377f1f))
+* medium-effort opus workers and Claude 5 prompting guidance ([#6](https://github.com/jjacobl1/frugalclaude/issues/6)) ([8c4dd22](https://github.com/jjacobl1/frugalclaude/commit/8c4dd220a67ce083ce78587e14ed6f6716377f1f))
+* pause switch for the session-start hook, and document deploying ([b86c3cd](https://github.com/jjacobl1/frugalclaude/commit/b86c3cdae8f63f2fc342db362ea313ce091bfba5))
+* run both opus workers at medium effort ([39184b2](https://github.com/jjacobl1/frugalclaude/commit/39184b2b13f566d840e52b911354b6a58bcf586b))
+* run every worker one tier above upstream defaults ([9f0167a](https://github.com/jjacobl1/frugalclaude/commit/9f0167a66a7e672b580c598e2e038d64340a102e))
+* run every worker one tier above upstream defaults ([fbbb6d5](https://github.com/jjacobl1/frugalclaude/commit/fbbb6d5668b417a442a7f614e1f1b2a99a2fb540))
+* run every worker one tier above upstream defaults ([#5](https://github.com/jjacobl1/frugalclaude/issues/5)) ([9f0167a](https://github.com/jjacobl1/frugalclaude/commit/9f0167a66a7e672b580c598e2e038d64340a102e))
+
+
+### Bug Fixes
+
+* install frugal at session start in remote environments here too ([6af63eb](https://github.com/jjacobl1/frugalclaude/commit/6af63eb5ca18d33ffc1c3f29eca0f759d1873e9c))
+* install frugal at session start in remote environments here too ([68d7914](https://github.com/jjacobl1/frugalclaude/commit/68d7914c4135750ccf26d641b474d325ce72143d))
+* install frugal at session start in remote environments here too ([#10](https://github.com/jjacobl1/frugalclaude/issues/10)) ([6af63eb](https://github.com/jjacobl1/frugalclaude/commit/6af63eb5ca18d33ffc1c3f29eca0f759d1873e9c))
+* resolve python3/python/py in hooks instead of hardcoding python3 ([65d3f4d](https://github.com/jjacobl1/frugalclaude/commit/65d3f4d7906ed94ba2ed9751bd0db2b405e84872))
+* resolve python3/python/py in hooks instead of hardcoding python3 ([#9](https://github.com/jjacobl1/frugalclaude/issues/9)) ([65d3f4d](https://github.com/jjacobl1/frugalclaude/commit/65d3f4d7906ed94ba2ed9751bd0db2b405e84872))
+* resolve python3/python/py instead of hardcoding python3 in hooks ([250a915](https://github.com/jjacobl1/frugalclaude/commit/250a9151eba22106e4bd75fa8086c3b92f155302))
+
 ## [0.15.1](https://github.com/jjacobl1/frugalclaude/compare/v0.15.0...v0.15.1) (2026-08-30)
 
 ### Bug Fixes
