@@ -131,6 +131,30 @@ Reverting to upstream's mapping is `/frugal:models scout=haiku extractor=haiku m
 or edit the `model:` line in each `agents/*.md`. Either way, run `/frugal:router-stats` after a
 few days of real work and let your own escalation rate settle the argument.
 
+## Deploying to a repo (remote sessions)
+
+Declaring the plugin in a repo's `.claude/settings.json` (`enabledPlugins` +
+`extraKnownMarketplaces`) is not enough on its own in remote environments such as
+app-launched sessions: nothing there acts on the declaration, so the plugin never
+installs. What works is a `SessionStart` hook that installs it explicitly before the
+session goes interactive. This repo carries the reference copy:
+
+- `.claude/hooks/session-start.sh` - installs the marketplace and plugin (idempotent,
+  remote-only via `$CLAUDE_CODE_REMOTE`, fails open)
+- the `hooks` block in `.claude/settings.json` that registers it
+
+To deploy to another repo, copy both, keep the `enabledPlugins` block, make the script
+executable, and check that repo's `.gitignore` does not swallow `.claude/hooks/` (a
+common `.claude/*` rule needs `!.claude/hooks/` and `!.claude/hooks/session-start.sh`
+negations). Takes effect on the next new session.
+
+**Pausing.** Create an empty `.claude/frugal.paused` in the repo and push; the hook then
+disables the plugin for every new session instead of installing it. Delete the file to
+resume. The switch works through a local-scope override the hook writes to
+`.claude/settings.local.json`, so the committed settings never change. For a softer pause
+that keeps routing advisory and metrics on but turns the hard guards off, set
+`FRUGAL_ALLOW_INLINE=1` and `FRUGAL_ALLOW_EXPENSIVE=1` in the repo settings' `env` block.
+
 ## Configuration
 
 - Defaults are the decision table in `skills/routing/SKILL.md`.
